@@ -43,10 +43,14 @@ class Robot(object):
         self.feedback.setDaemon(True)
         self.feedback.start()
 
+    def enable(self, enabled):
+        self.enabled = enabled
+        for subsystem in self.subsystems:
+            subsystem.enabled = enabled
 
 if __name__ == "__main__":
     tails_bot = Robot()
-    tails_bot.enabled = True
+    tails_bot.enable(True)
     while tails_bot.enabled:
         pass
     
