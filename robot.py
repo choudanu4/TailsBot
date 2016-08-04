@@ -24,8 +24,8 @@ class OutputThread(threading.Thread):
     def run(self):
         while self.robot.enabled:
             for system in self.robot.subsystems:
+                system.calc_setpoint()
                 system.update()
-
 
 class Robot(object):
     def __init__(self):
@@ -35,6 +35,7 @@ class Robot(object):
         ]
         #TODO: remove test code
         self.subsystems[0].setpoint = 100
+        self.enable(True)
 
         self.output = OutputThread(self)
         self.output.setDaemon(True)
@@ -50,8 +51,6 @@ class Robot(object):
 
 if __name__ == "__main__":
     tails_bot = Robot()
-    tails_bot.enable(True)
-    while tails_bot.enabled:
+    while tails_bot:
         pass
-    
 

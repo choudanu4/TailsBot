@@ -15,13 +15,12 @@ class Subsystem(ABC, object):
 
     def update(self):
         for motor in self.motors:
-            motor.duty_cycle_sp = self.output
-            motor.run_direct()
+            motor.run_direct(duty_cycle_sp=self.output)
 
     @abstractmethod
     def calc_setpoint(self):
         if self.enabled:
-            self.output = self.setpoint #shouldn't be the case
+            self.output = self.output #shouldn't be the case
         else:
             self.output = 0
 
