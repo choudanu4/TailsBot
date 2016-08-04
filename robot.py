@@ -1,6 +1,7 @@
 """This module is the top-level robot."""
 
 import threading
+
 from subsystems.shooter import Shooter
 
 class FeedbackThread(threading.Thread):
@@ -41,4 +42,10 @@ class Robot(object):
         self.feedback = FeedbackThread(self)
         self.feedback.setDaemon(True)
         self.feedback.start()
+
+
+if __name__ == "__main__":
+    tails_bot = Robot()
+    while True:
+        print("Neato")
 
