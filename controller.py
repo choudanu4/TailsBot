@@ -1,64 +1,58 @@
 #!/usr/bin/env python3
-__author__ = 'Anton Vanhoucke'
+"""Controller"""
 
 import evdev
-import ev3dev.auto as ev3
-import threading
 
-## Some helpers ##
-def scale(val, src, dst):
-    """
-    Scale the given value from the scale of src to the scale of dst.
+__author__ = 'Anurag Choudhury'
 
-    val: float or int
-    src: tuple
-    dst: tuple
+class Controller(object):
+    """Takes controller events and sets setpoints"""
+    ## Some helpers ##
+    @classmethod
+    def scale(cls, val, src, dst):
+        """
+        Scale the given value from the scale of src to the scale of dst.
 
-    example: print scale(99, (0.0, 99.0), (-1.0, +1.0))
-    """
-    return (float(val - src[0]) / (src[1] - src[0])) * (dst[1] - dst[0]) + dst[0]
+        val: float or int
+        src: tuple
+        dst: tuple
 
-def scale_stick(value):
-    return scale(value,(0,255),(-100,100))
+        example: print scale(64, (0.0, 64.0), (-1.0, +1.0))
+        """
+        return (float(val - src[0]) / (src[1] - src[0])) * (dst[1] - dst[0]) + dst[0]
 
-## Initializing ##
-print("Finding ps3 controller...")
-devices = [evdev.InputDevice(fn) for fn in evdev.list_devices()]
-for device in devices:
-    if device.name == 'PLAYSTATION(R)3 Controller':
-        ps3dev = device.fn
+    @classmethod
+    def scale_stick(cls, value):
+        return cls.scale(value, (0, 255), (-100, 100))
 
-try:
-    gamepad = evdev.InputDevice(ps3dev)
-except NameError:
-    raise Exception("No Playstation Controller!")
+    def __init__(self, robot):
+        self.robot = robot
+        ## Initializing ##
+        print("Finding ps3 controller...")
+        devices = [evdev.InputDevice(fn) for fn in evdev.list_devices()]
+        for device in devices:
+            if device.name == 'PLAYSTATION(R)3 Controller':
+                ps3dev = device.fn
+        try:
+            self.gamepad = evdev.InputDevice(ps3dev)
+        except NameError:
+            raise Exception("No Playstation Controller!")
 
-speed = 0
-running = True
+    def map_input(self):
+        """maps the input to subsystems"""
+        for event in self.gamepad.read_loop():   #this loops infinitely
+            #Analog Inputs
+            if event.type == 3:             #A stick is moved
+                if event.code == 5:         #Y axis on right stick
+                    speed = self.scale_stick(event.value) #TODO: Get rid of this
 
-class MotorThread(threading.Thread):
-    def __init__(self):
-        self.motor = ev3.LargeMotor(ev3.OUTPUT_A)
-        threading.Thread.__init__(self)
-
-    def run(self):
-        print("Engine running!")
-        while running:
-            self.motor.run_direct(duty_cycle_sp=speed)
-
-        self.motor.stop()
-
-motor_thread = MotorThread()
-motor_thread.setDaemon(True)
-motor_thread.start()
-
-
-for event in gamepad.read_loop():   #this loops infinitely
-    if event.type == 3:             #A stick is moved
-        if event.code == 5:         #Y axis on right stick
-            speed = scale_stick(event.value)
-
-    if event.type == 1 and event.code == 302 and event.value == 1:
-        print("X button is pressed. Stopping.")
-        running = False
-        break
+            #Digital Inputs
+            if event.type == 1 and event.code == 302:
+                if event.value == 1:
+                    self.robot.subsystems[0].setpoint = 100
+                elif event.value == 0:
+                    self.robot.subsystems[0].setpoint = 0
+            if event.type == 1 and event.code == 291 and event.value == 1:
+                self.robot.enable(not self.robot.enabled)
+            if event.type == 1 and event.code == 288 and event.value == 1:
+                break #shuts off program

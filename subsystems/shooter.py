@@ -1,5 +1,7 @@
-from subsystems.subsystem import Subsystem
+"""This module contains the shooter subsystem"""
+
 import ev3dev.ev3 as ev3
+from subsystems.subsystem import Subsystem
 
 class Shooter(Subsystem):
     def __init__(self):
@@ -13,7 +15,7 @@ class Shooter(Subsystem):
             self.output = 100
         else:
             self.output = 0
-        super(Shooter, self).calc_setpoint() #enabled check
+        Subsystem.calc_setpoint(self) #enabled check
 
     def feedback(self):
         """Updates position and velocity readouts"""

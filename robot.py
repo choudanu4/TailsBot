@@ -1,6 +1,7 @@
 """This module is the top-level robot."""
 
 import threading
+from controller import Controller
 
 from subsystems.shooter import Shooter
 
@@ -11,9 +12,10 @@ class FeedbackThread(threading.Thread):
         self.robot = robot #pass by reference, not compute intensive
 
     def run(self):
-        while self.robot.enabled:
-            for system in self.robot.subsystems:
-                system.feedback()
+        while True:
+            if self.robot.enabled:
+                for system in self.robot.subsystems:
+                    system.feedback()
 
 class OutputThread(threading.Thread):
     """Runs motors and output value"""
@@ -22,10 +24,11 @@ class OutputThread(threading.Thread):
         self.robot = robot
 
     def run(self):
-        while self.robot.enabled:
-            for system in self.robot.subsystems:
-                system.calc_setpoint()
-                system.update()
+        while True:
+            if self.robot.enabled:
+                for system in self.robot.subsystems:
+                    system.calc_setpoint()
+                    system.update()
 
 class Robot(object):
     def __init__(self):
@@ -33,9 +36,6 @@ class Robot(object):
         self.subsystems = [
             Shooter(), #Ejector(), Elevator(),
         ]
-        #TODO: remove test code
-        self.subsystems[0].setpoint = 100
-        self.enable(True)
 
         self.output = OutputThread(self)
         self.output.setDaemon(True)
@@ -45,12 +45,12 @@ class Robot(object):
         self.feedback.start()
 
     def enable(self, enabled):
+        """Enables and disables the robot and subsystems"""
         self.enabled = enabled
         for subsystem in self.subsystems:
             subsystem.enabled = enabled
 
 if __name__ == "__main__":
     tails_bot = Robot()
-    while tails_bot:
-        pass
-
+    operator = Controller(tails_bot)
+    operator.map_input()

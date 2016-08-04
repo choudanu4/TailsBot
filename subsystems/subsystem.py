@@ -1,3 +1,5 @@
+"""Subsystem Abstract Class"""
+
 from abc import ABC, abstractmethod
 
 class Subsystem(ABC, object):
@@ -11,14 +13,17 @@ class Subsystem(ABC, object):
         self.motors = []
 
     def reset(self):
+        """Resets motor and sensor readings"""
         self.position = 0 #add motor reset
 
     def update(self):
+        """Pushes ouput to motors"""
         for motor in self.motors:
             motor.run_direct(duty_cycle_sp=self.output)
 
     @abstractmethod
     def calc_setpoint(self):
+        """Infers a output from a setpoint"""
         if self.enabled:
             self.output = self.output #shouldn't be the case
         else:
@@ -26,5 +31,6 @@ class Subsystem(ABC, object):
 
     @abstractmethod
     def feedback(self):
+        """Sends feedback such as motor position and sensor values"""
         pass
 
