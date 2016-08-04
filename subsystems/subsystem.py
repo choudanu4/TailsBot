@@ -20,7 +20,10 @@ class Subsystem(ABC, object):
 
     @abstractmethod
     def calc_setpoint(self):
-        self.output = self.setpoint #shouldn't be the case
+        if self.enabled:
+            self.output = self.setpoint #shouldn't be the case
+        else:
+            self.output = 0
 
     @abstractmethod
     def feedback(self):

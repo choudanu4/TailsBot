@@ -46,6 +46,8 @@ class Robot(object):
 
 if __name__ == "__main__":
     tails_bot = Robot()
-    while True:
-        print("Neato")
+    tails_bot.enabled = True
+    while tails_bot.enabled:
+        pass
+    
 
